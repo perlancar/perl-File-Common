@@ -39,6 +39,7 @@ _
             schema => 'posint*',
         },
     },
+    result_naked => 1,
 };
 sub list_common_files {
     my %args = @_;
