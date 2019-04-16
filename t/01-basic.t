@@ -70,4 +70,34 @@ subtest "opt: min_occurrence" => sub {
     );
 };
 
+subtest "opt: detail" => sub {
+    my $dirs = ["$tempdir/dir1", "$tempdir/dir2", "$tempdir/dir3"];
+
+    is_deeply(
+        list_common_files(
+            dirs => $dirs,
+            detail => 1),
+        {
+            a => {dirs=>$dirs},
+            "sub1/g" => {dirs=>$dirs},
+        },
+    );
+
+    is_deeply(
+        list_common_files(
+            dirs => $dirs,
+            min_occurrence => 2,
+            detail => 1),
+        {
+            a => {dirs=>$dirs},
+            b => {dirs=>["$tempdir/dir1", "$tempdir/dir2"]},
+            c => {dirs=>["$tempdir/dir2", "$tempdir/dir3"]},
+            "sub1/g" => {dirs=>$dirs},
+            "sub1/h" => {dirs=>["$tempdir/dir1", "$tempdir/dir2"]},
+            "sub1/i" => {dirs=>["$tempdir/dir2", "$tempdir/dir3"]},
+            "sub2/m" => {dirs=>["$tempdir/dir1", "$tempdir/dir2"]},
+        },
+    );
+};
+
 done_testing;

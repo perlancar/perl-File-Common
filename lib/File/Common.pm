@@ -38,6 +38,30 @@ _
         min_occurrence => {
             schema => 'posint*',
         },
+        detail => {
+            summary => 'Whether to return detailed result per file',
+            schema => 'bool*',
+            description => <<'_',
+
+If set to true, instead of an array of filenames:
+
+    ["file1", "file2"]
+
+it will instead return a hash with filename as key and another hash containing
+detailed information:
+
+    {
+        "file1" => {
+            dirs => ["dir1", "dir2"], # in which dirs the file is found
+        },
+        "file2" => {
+            ...
+        },
+    }
+
+
+_
+        }
     },
     result_naked => 1,
 };
@@ -47,6 +71,7 @@ sub list_common_files {
     my $dirs = $args{dirs} or die "Please specify 'dirs'";
     @$dirs >= 2 or die "Please specify at least 2 directories";
     my $min_occurrence = $args{min_occurrence};
+    my $detail = $args{detail};
 
     my @all_files; # index = dir index, elem = hash of path=>1
     for my $i (0..$#{$dirs}) {
@@ -70,19 +95,34 @@ sub list_common_files {
     if (defined $min_occurrence) {
         for my $i (0..$#all_files) {
             for my $f (keys %{ $all_files[$i] }) {
-                $res{$f}++;
+                if ($detail) {
+                    push @{ $res{$f}{dirs} }, $dirs->[$i];
+                } else {
+                    $res{$f}++;
+                }
             }
         }
-        return [sort grep { $res{$_} >= $min_occurrence } keys %res];
+        if ($detail) {
+            for my $k (keys %res) {
+                delete $res{$k} unless @{ $res{$k}{dirs} } >= $min_occurrence;
+            }
+            return \%res;
+        } else {
+            return [sort grep { $res{$_} >= $min_occurrence } keys %res];
+        }
     } else {
       FILE:
         for my $f0 (keys %{ $all_files[0] }) {
             for my $i (1..$#all_files) {
                 next FILE unless $all_files[$i]{$f0};
             }
-            $res{$f0}++;
+            if ($detail) {
+                $res{$f0}{dirs} = $dirs;
+            } else {
+                $res{$f0}++;
+            }
         }
-        return [sort keys %res];
+        return $detail ? \%res : [sort keys %res];
     }
 }
 
