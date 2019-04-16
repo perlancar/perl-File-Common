@@ -55,18 +55,18 @@ $res->[0] == 200 or die "Can't create files: $res->[0] - $res->[1]";
 
 subtest "basics" => sub {
     is_deeply(
-        [sort @{list_common_files(
-            dirs => ["$tempdir/dir1", "$tempdir/dir2", "$tempdir/dir3"])}],
-        [sort qw(a sub1/g)],
+        list_common_files(
+            dirs => ["$tempdir/dir1", "$tempdir/dir2", "$tempdir/dir3"]),
+        [qw(a sub1/g)],
     );
 };
 
 subtest "opt: min_occurrence" => sub {
     is_deeply(
-        [sort @{list_common_files(
+        list_common_files(
             dirs => ["$tempdir/dir1", "$tempdir/dir2", "$tempdir/dir3"],
-            min_occurrence => 2)}],
-        [sort qw(a b c sub1/g sub1/h sub2/m)],
+            min_occurrence => 2),
+        [qw(a b c sub1/g sub1/h sub1/i sub2/m)],
     );
 };
 
